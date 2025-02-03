@@ -18,6 +18,7 @@ use App\Models\ExecutiveScheme;
 use App\Models\Project;
 use App\Models\Representative;
 use App\Models\WorkVolume;
+use PhpOffice\PhpWord\TemplateProcessor;
 use function PHPUnit\Framework\isEmpty;
 
 class ActController extends BaseController
@@ -154,5 +155,54 @@ class ActController extends BaseController
         }
     }
 
+    public function generateAct($id){
+        try{
+            $act = Act::find($id);
+            if($act===null){
+                return $this->sendError(
+                    'Акт не найден'
+                );
+            }
+
+            $templatePath = resource_path('docs\act.docx');
+
+            if(!file_exists($templatePath)){
+                return response()->json([
+                   'error'=>'Шаблон акта не найден',
+                    'path'=>$templatePath
+                ], 404);
+            }
+            //Заполнение шаблона
+            $templateProcessor = new TemplateProcessor($templatePath);
+            $templateProcessor->setValues([
+                'ACT_NUMBER' => $act->id,
+                'DATE_START' => $act->date_start,
+                'DATE_END' => $act->date_end,
+
+            ]);
+
+            // Путь для сохранения
+            $outputDirectory = storage_path('app/acts');
+            if (!is_dir($outputDirectory)) {
+                mkdir($outputDirectory, 0755, true); // Создаём директорию с правами доступа
+            }
+
+            $outputPath = $outputDirectory . '/act_' . $act->id . '.docx';
+
+            // Сохранение файла
+            $templateProcessor->saveAs($outputPath);
+
+            return $this->sendSuccess(
+                $outputPath,
+                'Акт успешно заполнен'
+            );
+
+        }catch (\Exception $e){
+            return $this->sendError(
+                $e->getMessage(),
+                'Ошибка при обработке запросов'
+            );
+        }
+    }
 
 }

@@ -45,6 +45,7 @@ Route::prefix('acts')->group(function () {  //закончить функции 
     Route::post('/create', [ActController::class, 'createAct'])->name('createAct'); //Работает
     Route::patch('/update/{id}', [ActController::class, 'updateAct'])->name('updateAct'); //работает
     Route::delete('/delete/{id}', [ActController::class, 'deleteAct'])->name('deleteAct'); //работает
+    Route::get('/{id}/generate', [ActController::class, 'generateAct'])->name('generateAct');
 });
 
 Route::prefix('certificates')->group(function () {
